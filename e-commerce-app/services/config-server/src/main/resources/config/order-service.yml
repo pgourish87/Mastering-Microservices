@@ -1,3 +1,5 @@
+server:
+  port: 8070
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/order
@@ -9,8 +11,13 @@ spring:
       ddl-auto: create
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-server:
-  port: 8070
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping: orderConfirmation:com.cluster.ecommerce.kafka.OrderConfirmation
 
 application:
   config:

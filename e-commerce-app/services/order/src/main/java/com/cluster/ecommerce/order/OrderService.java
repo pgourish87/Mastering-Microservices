@@ -6,9 +6,10 @@ import com.cluster.ecommerce.kafka.OrderConfirmation;
 import com.cluster.ecommerce.kafka.OrderProducer;
 import com.cluster.ecommerce.orderline.OrderLineRequest;
 import com.cluster.ecommerce.orderline.OrderLineService;
+import com.cluster.ecommerce.payment.PaymentClient;
+import com.cluster.ecommerce.payment.PaymentRequest;
 import com.cluster.ecommerce.product.ProductClient;
 import com.cluster.ecommerce.product.PurchaseRequest;
-import com.cluster.ecommerce.product.PurchaseResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class OrderService {
     private final OrderMapper mapper;
     private final OrderLineService orderLineService;
     private final OrderProducer orderProducer;
+    private final PaymentClient paymentClient;
 
     public Integer createOrder(OrderRequest request) {
         //check the customer --> OpenFeign
@@ -51,6 +53,15 @@ public class OrderService {
             );
         }
         //Todo the payment process
+        var paymentRequest = new PaymentRequest(
+                request.amount(),
+                request.paymentMethod(),
+                order.getId(),
+                request.reference(),
+                customer
+        );
+        paymentClient.requestOrderPayment(paymentRequest);
+
         orderProducer.sendOrderConfirmation(
                 new OrderConfirmation(
                         request.reference(),
